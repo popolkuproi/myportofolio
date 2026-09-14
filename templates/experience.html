@@ -16,6 +16,7 @@
             <nav>
                 <a href="{% url 'main:show_main' %}">Profile</a>
                 <a href="{% url 'main:show_experience' %}">Experience</a>
+                <a href="{% url 'main:show_project' %}">Projects</a>
             </nav>
         </div>
     </header>
@@ -36,6 +37,10 @@
                         <h2>{{ experience.title }}</h2>
                         <p class="experience-description">
                             {{ experience.description }}
+                        </p>
+
+                        <p class="experience-date">
+                            {{ experience.started_at|date:"F Y" }}
                         </p>
 
                         {% if experience.is_ongoing %}

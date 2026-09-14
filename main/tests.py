@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience
+from main.models import Experience, Project
 
 
 class MainTest(TestCase):
@@ -56,3 +56,30 @@ class MainTest(TestCase):
         self.assertFalse(self.experience.is_ongoing)
         self.assertContains(response, "Selesai")
         self.assertNotContains(response, "Sedang berlangsung")
+
+class ProjectTest(TestCase):
+    def test_project_page_url(self):
+        response = self.client.get(reverse("main:show_project"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "project.html")
+
+    def test_project_data_appears(self):
+        Project.objects.create(
+            title="FinTrack",
+            description="A personal finance dashboard for tracking income, expenses, transactions, and cash flow.",
+            technologies="HTML, CSS, JavaScript, LocalStorage",
+        )
+
+        response = self.client.get(reverse("main:show_project"))
+
+        self.assertContains(response, "FinTrack")
+        self.assertContains(response, "A personal finance dashboard")
+        self.assertContains(response, "HTML, CSS, JavaScript, LocalStorage")
+
+    def test_project_empty_state(self):
+        response = self.client.get(reverse("main:show_project"))
+
+        self.assertContains(
+            response,
+            "Belum ada project yang ditambahkan."
+        )

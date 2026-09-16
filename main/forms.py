@@ -1,6 +1,6 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput
 
-from main.models import Project
+from main.models import Education, Project
 
 
 class ProjectForm(ModelForm):
@@ -48,6 +48,63 @@ class ProjectForm(ModelForm):
             "project_image_url": URLInput(
                 attrs={
                     "placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000",
+                }
+            ),
+        }
+
+class EducationForm(ModelForm):
+    class Meta:
+        model = Education
+        fields = [
+            "institution",
+            "degree",
+            "description",
+            "start_year",
+            "end_year",
+            "institution_url",
+        ]
+
+        labels = {
+            "institution": "Institusi Pendidikan",
+            "degree": "Program Studi / Gelar",
+            "description": "Deskripsi",
+            "start_year": "Tahun Mulai",
+            "end_year": "Tahun Selesai",
+            "institution_url": "URL Institusi",
+        }
+
+        widgets = {
+            "institution": TextInput(
+                attrs={
+                    "placeholder": "Universitas Indonesia",
+                    "maxlength": 255,
+                }
+            ),
+            "degree": TextInput(
+                attrs={
+                    "placeholder": "Ilmu Komputer",
+                    "maxlength": 255,
+                }
+            ),
+            "description": Textarea(
+                attrs={
+                    "placeholder": "Ceritakan pendidikanmu",
+                    "rows": 3,
+                }
+            ),
+            "start_year": TextInput(
+                attrs={
+                    "placeholder": "2025",
+                }
+            ),
+            "end_year": TextInput(
+                attrs={
+                    "placeholder": "2029",
+                }
+            ),
+            "institution_url": URLInput(
+                attrs={
+                    "placeholder": "https://cs.ui.ac.id",
                 }
             ),
         }

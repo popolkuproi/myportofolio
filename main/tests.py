@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience, Project
+from main.models import Education, Experience, Project
 
 
 class MainTest(TestCase):
@@ -190,4 +190,146 @@ class ProjectTest(TestCase):
         self.assertEqual(
             data[0]["fields"]["title"],
             "FinTrack"
+        )
+
+
+class EducationTest(TestCase):
+    def setUp(self):
+        self.education = Education.objects.create(
+            institution="Universitas Indonesia",
+            degree="Ilmu Komputer",
+            description="Mahasiswa Ilmu Komputer",
+            start_year=2025,
+            end_year=2029,
+            institution_url="https://cs.ui.ac.id",
+        )
+
+    def test_education_model(self):
+        self.assertEqual(
+            str(self.education),
+            "Ilmu Komputer - Universitas Indonesia"
+        )
+
+    def test_show_education(self):
+        response = self.client.get(
+            reverse("main:show_education")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertTemplateUsed(
+            response,
+            "education.html"
+        )
+        self.assertContains(
+            response,
+            "Universitas Indonesia"
+        )
+        self.assertContains(
+            response,
+            "Ilmu Komputer"
+        )
+
+    def test_create_education(self):
+        response = self.client.post(
+            reverse("main:create_education"),
+            {
+                "institution": "Institut Teknologi Bandung",
+                "degree": "Teknik Informatika",
+                "description": "Pendidikan Teknik Informatika",
+                "start_year": 2025,
+                "end_year": 2029,
+                "institution_url": "https://itb.ac.id",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302
+        )
+
+        self.assertTrue(
+            Education.objects.filter(
+                institution="Institut Teknologi Bandung"
+            ).exists()
+        )
+
+    def test_update_education(self):
+        response = self.client.post(
+            reverse(
+                "main:update_education",
+                args=[self.education.id]
+            ),
+            {
+                "institution": "Universitas Indonesia",
+                "degree": "Sistem Informasi",
+                "description": "Updated description",
+                "start_year": 2025,
+                "end_year": 2029,
+                "institution_url": "https://cs.ui.ac.id",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302
+        )
+
+        self.education.refresh_from_db()
+
+        self.assertEqual(
+            self.education.degree,
+            "Sistem Informasi"
+        )
+
+    def test_delete_education(self):
+        education_id = self.education.id
+
+        response = self.client.get(
+            reverse(
+                "main:delete_education",
+                args=[education_id]
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302
+        )
+
+        self.assertFalse(
+            Education.objects.filter(
+                id=education_id
+            ).exists()
+        )
+
+    def test_education_json(self):
+        response = self.client.get(
+            reverse("main:get_education_json")
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertEqual(
+            response["Content-Type"],
+            "application/json"
+        )
+
+        data = response.json()
+
+        self.assertEqual(
+            len(data),
+            1
+        )
+        self.assertEqual(
+            data[0]["fields"]["institution"],
+            "Universitas Indonesia"
+        )
+        self.assertEqual(
+            data[0]["fields"]["degree"],
+            "Ilmu Komputer"
         )

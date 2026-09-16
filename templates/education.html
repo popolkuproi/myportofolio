@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Education - {{ name }} - Portofolio</title>
+{% endblock meta %}
+
+{% block content %}
+
+<main>
+    <section class="experience-section" id="education">
+        <div class="container">
+
+            <div class="project-header">
+                <div>
+                    <p class="section-kicker">Pendidikan saya</p>
+                    <h1>Education</h1>
+                </div>
+
+                <a
+                    href="{% url 'main:create_education' %}"
+                    class="button project-add-button"
+                >
+                    <span>+</span>
+                    Tambah Education
+                </a>
+            </div>
+
+            <div class="experience-grid">
+
+                {% for education in education_list %}
+                    <article class="experience-card">
+
+                        <h2>
+                            {{ education.object.institution }}
+                        </h2>
+
+                        <p class="experience-category">
+                            {{ education.object.degree }}
+                        </p>
+
+                        <p class="experience-description">
+                            {{ education.object.description }}
+                        </p>
+
+                        <p class="experience-date">
+                            {{ education.object.start_year }}
+                            -
+                            {% if education.object.end_year %}
+                                {{ education.object.end_year }}
+                            {% else %}
+                                Sekarang
+                            {% endif %}
+                        </p>
+
+                        {% if education.object.institution_url %}
+                            <div class="project-actions">
+                                <a
+                                    href="{{ education.object.institution_url }}"
+                                    target="_blank"
+                                    class="button"
+                                >
+                                    Website Institusi
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        <div class="project-actions">
+                            <a
+                                href="{% url 'main:update_education' education.object.id %}"
+                                class="button"
+                            >
+                                Edit
+                            </a>
+
+                            <a
+                                href="{% url 'main:delete_education' education.object.id %}"
+                                class="button button-danger"
+                            >
+                                Hapus
+                            </a>
+                        </div>
+
+                    </article>
+
+                {% empty %}
+                    <p class="empty-state">
+                        Belum ada pendidikan yang ditambahkan.
+                    </p>
+                {% endfor %}
+
+            </div>
+        </div>
+    </section>
+</main>
+
+{% endblock content %}

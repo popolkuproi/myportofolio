@@ -4,9 +4,9 @@ from django.core import serializers
 
 from django.http import HttpResponse
 
-from main.models import Experience, Project
+from main.models import Education, Experience, Project
 
-from main.forms import ProjectForm
+from main.forms import EducationForm, ProjectForm
 
 def show_main(request):
     context = {
@@ -71,3 +71,67 @@ def delete_project(request, id):
     project = Project.objects.get(pk=id)
     project.delete()
     return redirect("main:show_project")
+
+def create_education(request):
+    if request.method == "POST":
+        form = EducationForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("main:show_education")
+
+    else:
+        form = EducationForm()
+
+    context = {
+        "form": form,
+        "name": "Naufal Alvaro Habibullah",
+    }
+
+    return render(request, "education_form.html", context)
+
+def update_education(request, id):
+    education = Education.objects.get(pk=id)
+
+    if request.method == "POST":
+        form = EducationForm(request.POST, instance=education)
+
+        if form.is_valid():
+            form.save()
+            return redirect("main:show_education")
+
+    else:
+        form = EducationForm(instance=education)
+
+    context = {
+        "form": form,
+        "name": "Naufal Alvaro Habibullah",
+        "education": education,
+    }
+
+    return render(request, "education_form.html", context)
+
+def show_education(request):
+    json_data = get_education_json(request)
+    data = json_data.content.decode("utf-8")
+
+    context = {
+        "name": "Naufal Alvaro Habibullah",
+        "education_list": serializers.deserialize("json", data),
+    }
+
+    return render(request, "education.html", context)
+
+def get_education_json(request):
+    data = Education.objects.all()
+
+    return HttpResponse(
+        serializers.serialize("json", data),
+        content_type="application/json"
+    )
+
+def delete_education(request, id):
+    education = Education.objects.get(pk=id)
+    education.delete()
+
+    return redirect("main:show_education")

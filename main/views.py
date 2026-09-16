@@ -1,7 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+
+from django.core import serializers
+
+from django.http import HttpResponse
 
 from main.models import Experience, Project
 
+from main.forms import ProjectForm
 
 def show_main(request):
     context = {
@@ -23,8 +28,46 @@ def show_experience(request):
     return render(request, "experience.html", context)
 
 def show_project(request):
+    json_data = get_projects_json(request)
+    data = json_data.content.decode("utf-8")
+
     context = {
         "name": "Naufal Alvaro Habibullah",
-        "project_list": Project.objects.all(),
+        "project_list": serializers.deserialize("json", data),
     }
+
     return render(request, "project.html", context)
+
+def create_project(request):
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("main:show_project")
+    else:
+        form = ProjectForm()
+
+    context = {
+        "form": form,
+        "name": "Naufal Alvaro Habibullah",
+    }
+
+    return render(request, "projects_form.html", context)
+
+def get_projects_json(request):
+    title = request.GET.get("title")
+
+    if title:
+        data = Project.objects.filter(title__icontains=title)
+    else:
+        data = Project.objects.all()
+
+    return HttpResponse(
+        serializers.serialize("json", data),
+        content_type="application/json"
+    )
+
+def delete_project(request, id):
+    project = Project.objects.get(pk=id)
+    project.delete()
+    return redirect("main:show_project")

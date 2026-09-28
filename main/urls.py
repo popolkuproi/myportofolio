@@ -15,6 +15,7 @@ from main.views import (
     login_user,
     logout_user,
     toggle_star,
+    update_project,
 )
 
 app_name = "main"
@@ -62,5 +63,11 @@ urlpatterns = [
         "projects/<uuid:project_id>/star/",
         toggle_star,
         name="toggle_star",
+    ),
+
+    path(
+        "projects/<uuid:id>/edit/",
+        update_project,
+        name="update_project",
     ),
 ]

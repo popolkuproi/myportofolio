@@ -21,7 +21,8 @@ body {
     line-height: 1.6;
 }
 
-h1, .brand {
+h1,
+.brand {
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
@@ -81,20 +82,20 @@ h1, .brand {
     grid-area: details;
 }
 
-.technical-skills dt{ 
+.technical-skills dt {
     color: var(--text-muted);
     margin-bottom: 0.15rem;
     font-size: 0.75rem;
     text-transform: uppercase;
 }
 
-.technical-skills ul{
+.technical-skills ul {
     list-style-type: none;
     color: var(--text-muted);
     margin-bottom: 1.5rem;
 }
 
-.technical-skills li{
+.technical-skills li {
     font-weight: 600;
     color: var(--ink);
 }
@@ -284,7 +285,9 @@ h1, .brand {
     background: var(--ink);
 }
 
-/* Projects */
+/* =========================
+   Projects
+   ========================= */
 
 .project-header {
     width: 100%;
@@ -376,7 +379,9 @@ h1, .brand {
     margin-top: 0;
 }
 
-/* Delete Modal */
+/* =========================
+   Delete Modal
+   ========================= */
 
 .project-delete-modal {
     display: none;
@@ -571,4 +576,266 @@ h1, .brand {
 .experience-section .container > p a {
     color: var(--accent);
     font-weight: 700;
+}
+
+/* =========================
+   Toast Notification
+   ========================= */
+
+.toast-component {
+    position: fixed;
+    inset: auto 2rem 2rem auto;
+    margin: 0;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(28, 25, 23, 0.15);
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    background-color: var(--paper);
+    border: 1px solid var(--line);
+    color: inherit;
+}
+
+.toast-component:popover-open {
+    display: flex;
+}
+
+.toast-hidden {
+    opacity: 0;
+    transform: translateY(150%);
+    pointer-events: none;
+}
+
+.toast-show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+}
+
+.toast-message {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Modifikasi border kiri berdasarkan tipe notifikasi */
+
+.toast-success {
+    border-left: 4px solid #22c55e;
+}
+
+.toast-error {
+    border-left: 4px solid #b42318;
+}
+
+.toast-normal {
+    border-left: 4px solid var(--accent);
+}
+
+/* =========================
+   Project Form Modal
+   ========================= */
+
+.project-form-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-form-modal:popover-open {
+    display: flex;
+}
+
+.project-form-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(28, 25, 23, 0.58);
+    cursor: default;
+}
+
+.project-form-modal__content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 640px);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 1rem 3rem rgba(28, 25, 23, 0.22);
+}
+
+.project-form-modal__content h2 {
+    margin: 0 2.5rem 1.25rem 0;
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 1.5rem;
+}
+
+.project-form-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.project-form-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 600px) {
+    .project-form-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .project-form-modal__content {
+        width: 100%;
+        max-height: 90vh;
+        padding: 1.25rem;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .project-form-modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .project-form-modal__actions .button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .toast-component {
+        inset: auto 1rem 1rem 1rem;
+    }
+}
+
+/* =========================
+   Project Form Fields
+   ========================= */
+
+.project-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.project-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.project-form-field label {
+    display: block;
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.project-form-field input,
+.project-form-field textarea,
+.project-form-field select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.project-form-field textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.project-form-field input:focus,
+.project-form-field textarea:focus,
+.project-form-field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(217, 93, 57, 0.12);
+}
+
+.project-form-field input::placeholder,
+.project-form-field textarea::placeholder {
+    color: #9a9288;
+}
+
+.project-form-help {
+    display: block;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.project-form-error {
+    min-height: 0;
+    margin: 0;
+    color: #b42318;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.project-form-general-error {
+    margin-top: 1rem;
+    color: #b42318;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+#project-form-submit:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+@media (max-width: 600px) {
+    .project-form-fields {
+        gap: 0.9rem;
+    }
+
+    .project-form-field input,
+    .project-form-field textarea,
+    .project-form-field select {
+        padding: 0.7rem 0.8rem;
+    }
 }

@@ -1,25 +1,29 @@
-<form method="post"
-      action="{% url 'main:toggle_star' project.id %}"
-      class="star-form">
+{% if user.is_authenticated %}
 
-    {% csrf_token %}
-
-    <button
-        type="submit"
-        class="button button-star{% if user in project.starred_by.all %} is-starred{% endif %}"
-        title="{% if project.starred_by.all %}Dibintangi oleh {{ project.starred_by.all|join:', ' }}{% else %}Jadilah yang pertama memberi star{% endif %}"
+    <form
+        method="POST"
+        action="{% url 'main:toggle_star' project.id %}"
+        class="star-form"
     >
-        <span aria-hidden="true">★</span>
+        {% csrf_token %}
 
-        {% if user in project.starred_by.all %}
-            Unstar
-        {% else %}
-            Star
-        {% endif %}
+        <button
+            type="submit"
+            class="button button-star {% if user in project.starred_by.all %}is-starred{% endif %}"
+            title="{% if user in project.starred_by.all %}Batalkan star{% else %}Beri star{% endif %}"
+        >
+            <span aria-hidden="true">★</span>
 
-        <span class="star-count">
-            {{ project.starred_by.count }}
-        </span>
-    </button>
+            {% if user in project.starred_by.all %}
+                Unstar
+            {% else %}
+                Star
+            {% endif %}
 
-</form>
+            <span class="star-count">
+                {{ project.starred_by.count }}
+            </span>
+        </button>
+    </form>
+
+{% endif %}

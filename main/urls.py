@@ -1,10 +1,12 @@
 from django.urls import path
+
 from main.views import (
     show_main,
     show_experience,
     show_project,
     show_education,
     create_project,
+    create_project_ajax,
     create_education,
     update_education,
     delete_education,
@@ -21,23 +23,50 @@ from main.views import (
 app_name = "main"
 
 urlpatterns = [
-    path("", show_main, name="show_main"),
-    path("experience/", show_experience, name="show_experience"),
-    path("project/", show_project, name="show_project"),
+    # Main
+    path(
+        "",
+        show_main,
+        name="show_main",
+    ),
+
+    path(
+        "experience/",
+        show_experience,
+        name="show_experience",
+    ),
+
+    path(
+        "project/",
+        show_project,
+        name="show_project",
+    ),
 
     # Education
-    path("education/", show_education, name="show_education"),
-    path("education/add/", create_education, name="create_education"),
+    path(
+        "education/",
+        show_education,
+        name="show_education",
+    ),
+
+    path(
+        "education/add/",
+        create_education,
+        name="create_education",
+    ),
+
     path(
         "education/update/<uuid:id>/",
         update_education,
         name="update_education",
     ),
+
     path(
         "education/delete/<uuid:id>/",
         delete_education,
         name="delete_education",
     ),
+
     path(
         "api/education/",
         get_education_json,
@@ -45,19 +74,35 @@ urlpatterns = [
     ),
 
     # Projects
-    path("projects/add/", create_project, name="create_project"),
-    path("api/projects/", get_projects_json, name="get_projects_json"),
+    path(
+        "projects/add/",
+        create_project,
+        name="create_project",
+    ),
+
+    path(
+        "projects/add-ajax/",
+        create_project_ajax,
+        name="create_project_ajax",
+    ),
+
+    path(
+        "api/projects/",
+        get_projects_json,
+        name="get_projects_json",
+    ),
+
     path(
         "projects/delete/<uuid:id>/",
         delete_project,
         name="delete_project",
     ),
 
-    path("register/", register, name="register"),
-
-    path("login/", login_user, name="login"),
-
-    path("logout/", logout_user, name="logout"),
+    path(
+        "projects/<uuid:id>/edit/",
+        update_project,
+        name="update_project",
+    ),
 
     path(
         "projects/<uuid:project_id>/star/",
@@ -65,9 +110,22 @@ urlpatterns = [
         name="toggle_star",
     ),
 
+    # Authentication
     path(
-        "projects/<uuid:id>/edit/",
-        update_project,
-        name="update_project",
+        "register/",
+        register,
+        name="register",
+    ),
+
+    path(
+        "login/",
+        login_user,
+        name="login",
+    ),
+
+    path(
+        "logout/",
+        logout_user,
+        name="logout",
     ),
 ]

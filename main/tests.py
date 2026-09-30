@@ -132,30 +132,59 @@ class ProjectTest(TestCase):
         )
 
         response = self.client.get(
-            reverse("main:show_project")
+            reverse("main:get_projects_json")
         )
 
-        self.assertContains(
-            response,
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertEqual(
+            response["Content-Type"],
+            "application/json"
+        )
+
+        data = response.json()
+
+        self.assertEqual(
+            len(data),
+            1
+        )
+        self.assertEqual(
+            data[0]["fields"]["title"],
             "FinTrack"
         )
-        self.assertContains(
-            response,
-            "A personal finance dashboard"
+        self.assertEqual(
+            data[0]["fields"]["description"],
+            (
+                "A personal finance dashboard for tracking income, "
+                "expenses, transactions, and cash flow."
+            )
         )
-        self.assertContains(
-            response,
+        self.assertEqual(
+            data[0]["fields"]["tech_stack"],
             "HTML, CSS, JavaScript, LocalStorage"
         )
 
     def test_project_empty_state(self):
         response = self.client.get(
-            reverse("main:show_project")
+            reverse("main:get_projects_json")
         )
 
-        self.assertContains(
-            response,
-            "Belum ada project yang ditambahkan."
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+        self.assertEqual(
+            response["Content-Type"],
+            "application/json"
+        )
+
+        data = response.json()
+
+        self.assertEqual(
+            data,
+            []
         )
 
     def test_project_json(self):

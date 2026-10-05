@@ -73,3 +73,58 @@ Strategi prompting yang saya gunakan adalah memberikan konteks mengenai fitur ya
 Untuk memastikan hasil implementasi tidak hanya bergantung pada jawaban AI, saya melakukan validasi menggunakan `python manage.py check`, `python manage.py test main`, dan `python manage.py runserver`. Saya juga melakukan pengujian fitur melalui browser dan melakukan deployment ke PWS untuk memastikan aplikasi dapat berjalan pada lingkungan production.
 
 Dalam prosesnya, saya menemukan bahwa beberapa saran AI masih perlu disesuaikan dengan kondisi project saya. Oleh karena itu, saya tidak langsung menyalin seluruh kode yang diberikan, tetapi memeriksa kembali struktur file, nama URL, model, template, dan hasil pengujian sebelum menerapkannya.
+
+## Tugas 5
+
+1. Debouncing adalah teknik untuk menunda eksekusi suatu fungsi sampai pengguna berhenti melakukan suatu aktivitas selama waktu tertentu. Pada fitur pencarian yang menggunakan AJAX, debouncing digunakan agar request ke server tidak dikirim setiap kali pengguna mengetik satu karakter. Misalnya, saya menggunakan jeda sekitar 300 ms setelah input terakhir sebelum menjalankan pencarian.
+
+Teknik ini penting karena tanpa debouncing, ketika pengguna mengetik kata yang panjang akan terjadi banyak request AJAX secara berurutan. Hal tersebut dapat membuat server menerima request yang tidak diperlukan dan membuat aplikasi menjadi kurang efisien. Dengan debouncing, request hanya dikirim setelah pengguna berhenti mengetik sejenak sehingga jumlah request dapat dikurangi dan pencarian menjadi lebih efisien.
+
+2. fetch() digunakan untuk melakukan request secara asynchronous dan menghasilkan sebuah Promise. await digunakan untuk menunggu sampai Promise tersebut selesai sebelum program melanjutkan ke baris berikutnya. Contohnya, setelah melakukan fetch(), saya perlu menunggu response dari server sebelum membaca data JSON menggunakan response.json().
+
+Jika tidak menggunakan await, hasil dari fetch() masih berupa Promise, bukan response yang sudah selesai. Akibatnya, jika kode langsung mencoba menggunakan hasil tersebut sebagai response, data belum tersedia dan dapat menyebabkan error atau alur program berjalan tidak sesuai yang diharapkan. await membuat alur kode asynchronous lebih mudah dibaca karena terlihat seperti proses yang berjalan secara berurutan.
+
+3. XSS (Cross-Site Scripting) adalah serangan ketika data yang berasal dari pengguna mengandung kode atau markup berbahaya yang kemudian dijalankan oleh browser sebagai bagian dari halaman web. Contohnya, pengguna dapat memasukkan HTML atau JavaScript ke dalam field yang kemudian ditampilkan kembali kepada pengguna lain.
+
+Pada data yang ditampilkan melalui AJAX/JavaScript, data dari server diproses dan dimasukkan ke dalam DOM secara langsung oleh JavaScript. Jika data tersebut dimasukkan menggunakan cara yang tidak aman, seperti innerHTML tanpa melakukan escaping, markup atau script yang terdapat pada data dapat dianggap sebagai HTML oleh browser. Karena itu, pada implementasi saya, data yang berasal dari server di-escape terlebih dahulu menggunakan fungsi escapeHtml() sebelum dimasukkan ke dalam tampilan.
+
+Sementara itu, ketika data ditampilkan langsung melalui template Django, Django secara default melakukan HTML escaping pada variabel template sehingga karakter seperti < dan > tidak langsung diperlakukan sebagai HTML. Meskipun demikian, keamanan tetap harus diperhatikan pada kedua pendekatan. Pada implementasi AJAX, saya secara eksplisit melakukan escaping terhadap data yang akan dirender menggunakan JavaScript.
+
+## AI Disclosure
+
+Dalam pengerjaan Tugas 5, saya menggunakan ChatGPT sebagai alat bantu belajar dan pendamping implementasi. Saya tidak menggunakan AI untuk sekadar menyalin seluruh solusi, tetapi menggunakan AI untuk membantu memahami konsep, mengecek struktur implementasi, mencari kemungkinan kesalahan, dan memberikan saran ketika mengalami masalah saat mengembangkan fitur.
+
+Saya menggunakan AI terutama pada beberapa bagian berikut:
+    - memahami penerapan AJAX dan fetch() pada fitur Education;
+    - memahami penggunaan JSON untuk mengambil data Education;
+    - menerapkan loading, empty state, dan error state;
+    - memahami dan menerapkan debouncing pada fitur pencarian;
+    - membantu memahami penggunaan CSRF pada request POST;
+    - membantu mengecek role check pada endpoint backend;
+    - membantu mengidentifikasi potensi XSS dan menerapkan fungsi escapeHtml();
+    - membantu menerapkan strip_tags pada EducationForm;
+    - membantu membuat dan memperbaiki test untuk endpoint Education;
+    - membantu melakukan debugging ketika terdapat error pada konfigurasi URL dan fitur delete Education.
+
+Dalam menggunakan ChatGPT, saya memberikan konteks berupa struktur project, kode yang sedang dikerjakan, error yang muncul, serta hasil test. Saya kemudian meminta bantuan secara bertahap untuk bagian tertentu, bukan meminta AI membuat seluruh project dari awal. Setelah mendapatkan saran, saya menerapkannya pada project dan menjalankan kembali program serta test untuk memastikan perubahan tersebut sesuai dengan project saya.
+
+Saya juga melakukan pengecekan dan perbaikan secara manual. Salah satu contohnya adalah ketika fitur delete Education mengalami error pada main/urls.py. Setelah menjalankan test, saya melihat pesan error dari Django:
+TypeError: kwargs argument must be a dict, but got function.
+
+Saya kemudian memeriksa kembali konfigurasi URL dan menemukan bahwa dua function secara tidak sengaja ditulis dalam satu pemanggilan path(). Setelah diperbaiki, saya menjalankan kembali test dan mendapatkan hasil 25 test berhasil (OK).
+
+Saya juga menyadari bahwa AI tidak selalu mengetahui kondisi project saya secara sempurna. Saran yang diberikan tetap perlu dibandingkan dengan kode yang sebenarnya digunakan, dicoba langsung, dan diperbaiki jika tidak sesuai. Karena itu, saya menggunakan AI terutama sebagai alat bantu untuk memahami konsep, debugging, dan review, sedangkan hasil akhirnya tetap saya jalankan dan verifikasi sendiri melalui aplikasi dan automated test.
+
+Referensi Penggunaan AI
+AI yang digunakan:
+    - ChatGPT (OpenAI)
+    Bentuk bantuan:
+        - Penjelasan konsep AJAX, fetch(), await, debouncing, CSRF, XSS, dan strip_tags.
+        - Review dan debugging kode Django, JavaScript, URL, dan test.
+        - Saran implementasi dan perbaikan berdasarkan error yang ditemukan saat menjalankan project.
+        - Membantu menyusun dan memperbaiki automated test.
+        Strategi penggunaan:
+        - Memberikan konteks kode dan error yang spesifik.
+        - Mengerjakan implementasi secara bertahap.
+        - Menjalankan kode dan test setelah perubahan.
+        - Memeriksa kembali hasil saran AI dan melakukan penyesuaian manual apabila diperlukan.

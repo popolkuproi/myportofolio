@@ -8,8 +8,10 @@ from main.views import (
     create_project,
     create_project_ajax,
     create_education,
+    create_education_ajax,
     update_education,
     delete_education,
+    delete_education_ajax,
     get_projects_json,
     get_education_json,
     delete_project,
@@ -56,6 +58,12 @@ urlpatterns = [
     ),
 
     path(
+        "education/add-ajax/",
+        create_education_ajax,
+        name="create_education_ajax",
+    ),
+
+    path(
         "education/update/<uuid:id>/",
         update_education,
         name="update_education",
@@ -65,6 +73,12 @@ urlpatterns = [
         "education/delete/<uuid:id>/",
         delete_education,
         name="delete_education",
+    ),
+
+    path(
+        "education/delete-ajax/<uuid:id>/",
+        delete_education_ajax,
+        name="delete_education_ajax",
     ),
 
     path(

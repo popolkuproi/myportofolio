@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core import serializers
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 
@@ -236,6 +235,9 @@ def delete_project(request, id):
 
 
 def create_education(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     if request.method == "POST":
         form = EducationForm(request.POST)
 
@@ -257,11 +259,60 @@ def create_education(request):
     )
 
 
+@require_POST
+def create_education_ajax(request):
+    """
+    Membuat education baru melalui AJAX.
+
+    Endpoint ini hanya menerima POST dan hanya dapat digunakan
+    oleh pemilik portofolio (superuser).
+    """
+
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {
+                "message": (
+                    "Hanya pemilik portofolio yang dapat "
+                    "menambahkan pendidikan."
+                )
+            },
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+
+    if form.is_valid():
+        education = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Pendidikan berhasil ditambahkan.",
+                "pk": str(education.id),
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {
+            "errors": form.errors.get_json_data(),
+        },
+        status=400,
+    )
+
+
+@login_required(login_url="/login/")
 def update_education(request, id):
     education = get_object_or_404(
         Education,
         pk=id
     )
+
+    is_editor = request.user.groups.filter(
+        name="Editor"
+    ).exists()
+
+    if not request.user.is_superuser and not is_editor:
+        raise PermissionDenied
 
     if request.method == "POST":
         form = EducationForm(
@@ -291,15 +342,17 @@ def update_education(request, id):
 
 
 def show_education(request):
-    json_data = get_education_json(request)
-    data = json_data.content.decode("utf-8")
+    is_editor = (
+        request.user.is_authenticated
+        and request.user.groups.filter(
+            name="Editor"
+        ).exists()
+    )
 
     context = {
         "name": "Naufal Alvaro Habibullah",
-        "education_list": serializers.deserialize(
-            "json",
-            data
-        ),
+        "is_editor": is_editor,
+        "form": EducationForm(),
     }
 
     return render(
@@ -310,18 +363,46 @@ def show_education(request):
 
 
 def get_education_json(request):
-    data = Education.objects.all()
+    search_query = request.GET.get(
+        "institution",
+        ""
+    ).strip()
 
-    return HttpResponse(
-        serializers.serialize(
-            "json",
-            data
-        ),
-        content_type="application/json"
+    educations = Education.objects.all()
+
+    if search_query:
+        educations = educations.filter(
+            institution__icontains=search_query
+        )
+
+    data = []
+
+    for education in educations:
+        data.append(
+            {
+                "pk": str(education.id),
+                "fields": {
+                    "institution": education.institution,
+                    "degree": education.degree,
+                    "description": education.description,
+                    "start_year": education.start_year,
+                    "end_year": education.end_year,
+                    "institution_url": education.institution_url,
+                },
+            }
+        )
+
+    return JsonResponse(
+        data,
+        safe=False,
     )
 
 
+@login_required(login_url="/login/")
 def delete_education(request, id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     education = get_object_or_404(
         Education,
         pk=id
@@ -331,6 +412,29 @@ def delete_education(request, id):
 
     return redirect(
         "main:show_education"
+    )
+
+
+@require_POST
+def delete_education_ajax(request, id):
+    """Menghapus education melalui AJAX dan mengembalikan JSON."""
+
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return JsonResponse(
+            {
+                "message": "Hanya pemilik portofolio yang dapat menghapus pendidikan."
+            },
+            status=403,
+        )
+
+    education = get_object_or_404(Education, pk=id)
+    education.delete()
+
+    return JsonResponse(
+        {
+            "message": "Pendidikan berhasil dihapus."
+        },
+        status=200,
     )
 
 

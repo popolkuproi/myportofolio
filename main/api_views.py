@@ -98,29 +98,29 @@ def project_star(request, project_id):
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
 def education_list(request):
     if request.method in ("GET", "HEAD"):
-        educations = Education.objects.order_by("institution", "id")
+        educations = Education.objects.prefetch_related("starred_by").order_by("institution", "id")
         institution = request.query_params.get("institution", "").strip()
         if institution:
             educations = educations.filter(
                 institution__icontains=institution
             )
-        serializer = EducationSerializer(educations, many=True)
+        serializer = EducationSerializer(educations, many=True, context={"request": request})
         return Response(serializer.data)
 
-    serializer = EducationSerializer(data=request.data)
+    serializer = EducationSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(EducationSerializer(serializer.instance, context={"request": request}).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
 def education_detail(request, education_id):
-    education = get_object_or_404(Education, pk=education_id)
+    education = get_object_or_404(Education.objects.prefetch_related("starred_by"), pk=education_id)
 
     if request.method in ("GET", "HEAD"):
-        return Response(EducationSerializer(education).data)
+        return Response(EducationSerializer(education, context={"request": request}).data)
 
     if request.method == "DELETE":
         education.delete()
@@ -133,4 +133,17 @@ def education_detail(request, education_id):
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return Response(serializer.data)
+    return Response(EducationSerializer(serializer.instance, context={"request": request}).data)
+
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def education_star(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+    relation = education.starred_by
+    if relation.filter(pk=request.user.pk).exists():
+        relation.remove(request.user)
+    else:
+        relation.add(request.user)
+    return Response(EducationSerializer(education, context={"request": request}).data)

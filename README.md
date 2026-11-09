@@ -128,3 +128,71 @@ AI yang digunakan:
         - Mengerjakan implementasi secara bertahap.
         - Menjalankan kode dan test setelah perubahan.
         - Memeriksa kembali hasil saran AI dan melakukan penyesuaian manual apabila diperlukan.
+
+## Tugas 6
+
+1. REST menjelaskan resource melalui URL dan operasi HTTP, sedangkan JSON adalah salah satu format representasi data yang dapat digunakan REST. Contohnya, `GET /api/v1/education/` mengambil daftar Education dalam JSON. `PUT` mengganti seluruh data yang dapat diedit pada satu Education, sehingga field wajib yang tidak dikirim dapat membuat validasi gagal; `PATCH` hanya mengubah field yang dikirim, misalnya `{"degree":"Ilmu Kompter"}`.
+
+2. Serializer mengubah model Django menjadi representasi JSON dan memvalidasi data JSON sebelum menyimpan atau memperbarui model. Dibanding menyusun dictionary manual pada `JsonResponse`, serializer memusatkan pemetaan field dan validasi, sehingga respons konsisten dan data yang tidak diizinkan dapat dibuat read-only.
+
+3. Authentication mengenali siapa pengguna yang mengirim request; authorization menentukan tindakan yang boleh dilakukan pengguna tersebut. Tombol yang disembunyikan di template hanya membantu tampilan dan dapat dilewati dengan mengirim request langsung, sehingga izin tetap harus diperiksa server melalui permission class.
+
+4. Dengan `SessionAuthentication`, browser mengirim cookie sesi secara otomatis. CSRF token memastikan request perubahan berasal dari halaman aplikasi yang sah, sehingga setiap POST/PATCH/DELETE dari UI mengirim `X-CSRFToken`. `force_authenticate` menetapkan pengguna langsung di test dan melewati proses sesi/CSRF browser, maka tes itu saja tidak membuktikan CSRF berfungsi; `APIClient(enforce_csrf_checks=True)` menguji penolakan request tanpa token.
+
+## AI Disclosure
+
+Dalam pengerjaan Tugas 6, saya menggunakan ChatGPT sebagai alat bantu belajar dan pendamping dalam proses implementasi fitur. Penggunaan AI saya lakukan untuk membantu memahami konsep yang belum sepenuhnya saya kuasai, memberikan arahan ketika mengimplementasikan fitur, melakukan review terhadap kode yang sudah ada, serta membantu mengidentifikasi dan memperbaiki kesalahan selama proses pengembangan.
+
+Saya tidak menggunakan AI untuk membuat keseluruhan project dari awal. Saya terlebih dahulu memeriksa struktur project dan implementasi yang sudah tersedia, kemudian menggunakan ChatGPT untuk membantu mengembangkan bagian-bagian tertentu sesuai kebutuhan Tugas 6.
+
+Saya menggunakan AI terutama pada beberapa bagian berikut:
+
+    - memahami konsep dan penerapan Django REST Framework (DRF) untuk membuat REST API pada fitur Education.
+    - memahami penggunaan Serializer untuk mengubah data model Education menjadi format JSON serta melakukan validasi data yang diterima API.
+    - memahami penggunaan HTTP method seperti GET, POST, PATCH, dan DELETE dalam proses pengelolaan data melalui API.
+    - membantu mengimplementasikan endpoint API untuk mengambil daftar Education, melihat detail Education, membuat data, memperbarui data, dan menghapus data.
+    - memahami dan menerapkan sistem permission untuk membatasi akses API berdasarkan role pengguna, khususnya Portfolio Owner dan Editor.
+    - membantu mengimplementasikan fitur Star Education agar setiap pengguna memiliki status Star masing-masing.
+    - memahami penggunaan relasi antara pengguna dan Education untuk menyimpan informasi pengguna yang memberikan Star.
+    - membantu mengintegrasikan fitur Edit Education melalui API menggunakan HTTP method PATCH.
+    - memahami penggunaan CSRF token untuk melindungi request yang mengubah data ketika menggunakan autentikasi berbasis session.
+    - membantu menangani nilai kosong pada field End Year Education agar dapat dikirim sebagai `null` dan diterima oleh serializer sebagai field opsional.
+    - membantu menambahkan dan memperbaiki automated test untuk menguji endpoint API, autentikasi, permission, dan fitur Education.
+    - membantu melakukan debugging ketika terdapat ketidaksesuaian antara data yang dikirim dari frontend dengan validasi yang dilakukan oleh backend.
+    - membantu memeriksa migration database yang diperlukan untuk perubahan model terkait fitur Star Education.
+
+Dalam menggunakan ChatGPT, saya memberikan konteks berupa struktur project, kode pada file yang sedang dikerjakan, instruksi tugas, serta hasil error atau test yang muncul. Saya kemudian meminta bantuan secara bertahap untuk memahami dan mengimplementasikan bagian tertentu. Saya juga meminta penjelasan mengenai perubahan kode agar dapat memahami hubungan antara frontend, API, serializer, model, dan permission yang digunakan.
+
+Salah satu contoh penggunaan AI adalah ketika mengimplementasikan fitur Star Education. Saya meminta bantuan untuk memahami bagaimana mekanisme Star pada Education dapat mengikuti pola fitur Star yang sudah tersedia pada Projects. Dari proses tersebut, implementasi dikembangkan agar status Star disimpan berdasarkan pengguna dan Education yang dipilih. API kemudian mengembalikan informasi `star_count` dan `is_starred` agar frontend dapat menampilkan jumlah Star serta status Star pengguna yang sedang login.
+
+Contoh lainnya adalah ketika mengimplementasikan fitur Edit Education melalui API. Saya menggunakan bantuan ChatGPT untuk memahami bagaimana data yang diubah melalui modal pada halaman Education dikirim menggunakan HTTP method PATCH. Saya juga memeriksa bagaimana perubahan tersebut diproses oleh endpoint API dan serializer sebelum disimpan ke database.
+
+Saya juga menggunakan ChatGPT ketika menemukan permasalahan pada field `end_year` di Education. Permasalahan tersebut berkaitan dengan nilai kosong yang dikirim oleh form frontend dalam bentuk string kosong (`""`), sedangkan serializer membutuhkan nilai `null` untuk field yang bersifat opsional. Setelah memeriksa permasalahan tersebut, saya melakukan penyesuaian pada payload yang dikirim agar nilai End Year yang kosong dikonversi menjadi JSON `null`. Setelah perubahan dilakukan, saya menjalankan kembali pengujian API Education untuk memastikan bahwa perbaikan tersebut bekerja sesuai kebutuhan.
+
+Selain membantu implementasi, saya juga menggunakan ChatGPT untuk membantu menyusun dan memperbaiki automated test. Namun, hasil dari saran AI tidak langsung dianggap benar. Saya tetap menjalankan test menggunakan Django, memeriksa pesan error yang muncul, dan memastikan bahwa perubahan tidak menyebabkan masalah pada fitur lain yang sudah tersedia sebelumnya.
+
+Setelah implementasi selesai, saya melakukan verifikasi menggunakan beberapa perintah, seperti `python manage.py test main --verbosity 1`, `python manage.py check`, dan `python manage.py makemigrations --check --dry-run`. Hasil pengujian menunjukkan bahwa 46 test berhasil dijalankan, pemeriksaan konfigurasi Django tidak menemukan masalah, dan tidak terdapat perubahan model yang belum dibuatkan migration.
+
+Saya menyadari bahwa AI tidak selalu mengetahui kondisi project secara keseluruhan dan saran yang diberikan belum tentu langsung sesuai dengan struktur kode yang digunakan. Oleh karena itu, saya tetap perlu membaca kembali kode yang dihasilkan atau disarankan, memahami perubahan yang dilakukan, menyesuaikannya dengan implementasi sebelumnya, serta menjalankan pengujian untuk memastikan hasilnya benar.
+
+Melalui pengerjaan ini, saya menggunakan ChatGPT terutama sebagai alat bantu untuk memahami konsep, memperoleh arahan implementasi, debugging, dan review kode. Proses pengambilan keputusan, pemeriksaan kesesuaian dengan kebutuhan tugas, serta verifikasi hasil akhir tetap saya lakukan melalui project yang saya kerjakan.
+
+Referensi Penggunaan AI
+    AI yang digunakan:
+    - ChatGPT (OpenAI).
+        Bentuk bantuan:
+            - Penjelasan konsep Django REST Framework, REST API, Serializer, dan HTTP method.
+            - Penjelasan mekanisme autentikasi, permission, role Portfolio Owner dan Editor, serta CSRF.
+            - Bantuan implementasi fitur Star dan Edit Education menggunakan API.
+            - Review dan debugging kode Python, Django, JavaScript, dan konfigurasi URL.
+            - Bantuan menangani validasi data, khususnya field End Year yang bersifat opsional.
+            - Bantuan menyusun dan memperbaiki automated test untuk API dan fitur Education.
+            - Saran perbaikan berdasarkan hasil error dan pengujian yang ditemukan selama pengerjaan.
+
+        Strategi penggunaan:
+            - Memberikan instruksi tugas dan konteks struktur project sebelum meminta bantuan.
+            - Memberikan potongan kode dan pesan error yang relevan agar saran lebih sesuai dengan kondisi project.
+            - Meminta bantuan secara bertahap pada bagian yang belum dipahami atau mengalami kendala.
+            - Mempelajari dan memeriksa kembali perubahan kode yang disarankan AI.
+            - Menjalankan program dan automated test setelah melakukan perubahan.
+            - Melakukan penyesuaian manual apabila saran AI belum sesuai dengan kebutuhan atau implementasi project.

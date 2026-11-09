@@ -62,6 +62,7 @@ class Education(models.Model):
     start_year = models.IntegerField()
     end_year = models.IntegerField(blank=True, null=True)
     institution_url = models.URLField(blank=True)
+    starred_by = models.ManyToManyField(User, related_name="starred_educations", blank=True)
 
     def __str__(self):
         return f"{self.degree} - {self.institution}"

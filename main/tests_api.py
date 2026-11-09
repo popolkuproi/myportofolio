@@ -272,6 +272,7 @@ class EducationAPITest(APITestCase):
             "api:education-detail",
             args=[self.education.id],
         )
+        self.star_url = reverse("api:education-star", args=[self.education.id])
         self.payload = {
             "institution": "Institut Teknologi Bandung",
             "degree": "Teknik Informatika",
@@ -292,6 +293,26 @@ class EducationAPITest(APITestCase):
             self.client.get(self.detail_url).status_code,
             status.HTTP_200_OK,
         )
+        self.assertEqual(response.data[0]["star_count"], 0)
+        self.assertFalse(response.data[0]["is_starred"])
+
+    def test_star_requires_login_and_toggles(self):
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.client.force_authenticate(user=self.visitor)
+        response = self.client.post(self.star_url)
+        self.assertTrue(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 1)
+        self.assertTrue(self.education.starred_by.filter(pk=self.visitor.pk).exists())
+        response = self.client.post(self.star_url)
+        self.assertFalse(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 0)
+
+    def test_session_star_without_csrf_is_rejected(self):
+        client = APIClient(enforce_csrf_checks=True)
+        client.login(username="visitor", password="test-password")
+        response = client.post(self.star_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(self.education.starred_by.exists())
 
     def test_search_and_empty_results(self):
         response = self.client.get(

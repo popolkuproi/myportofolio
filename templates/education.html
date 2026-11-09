@@ -35,7 +35,7 @@
     </section>
 </main>
 
-{% if user.is_superuser %}
+{% if user.is_superuser or is_editor %}
     <div id="add-education-modal" class="project-form-modal" popover="auto" role="dialog" aria-modal="true" aria-labelledby="add-education-modal-title">
         <button type="button" class="project-form-modal__backdrop" popovertarget="add-education-modal" popovertargetaction="hide" aria-label="Tutup form tambah pendidikan"></button>
 
@@ -66,7 +66,6 @@
 <script>
     const BASE_EDUCATION_ENDPOINT = "{% url 'api:education-list' %}";
     const DETAIL_EDUCATION_ENDPOINT = "{% url 'api:education-detail' '00000000-0000-0000-0000-000000000000' %}";
-    const UPDATE_EDUCATION_ENDPOINT = "{% url 'main:update_education' '00000000-0000-0000-0000-000000000000' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
     const EDUCATION_PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
@@ -80,6 +79,8 @@
     const educationModal = document.getElementById("add-education-modal");
     let educationAbortController;
     let searchDebounceTimer;
+    let educationItems = [];
+    let editingEducationId = null;
 
     function getCookie(name) {
         const cookie = document.cookie.split(";")
@@ -111,14 +112,16 @@
                 escapeHtml(education.institution_url) +
                 '" target="_blank" rel="noopener noreferrer" class="button">Website Institusi</a></div>'
             : "";
-        const editUrl = UPDATE_EDUCATION_ENDPOINT.replace(EDUCATION_PLACEHOLDER, education.id);
         const edit = IS_SUPERUSER || IS_EDITOR
-            ? '<a href="' + editUrl + '" class="button">Edit</a>'
+            ? '<button type="button" class="button education-edit-button" data-id="' + escapeHtml(education.id) + '">Edit</button>'
             : "";
         const remove = IS_SUPERUSER
             ? '<button type="button" class="button button-danger education-delete-button" data-id="' +
                 escapeHtml(education.id) + '">Hapus</button>'
             : "";
+        const star = '<button type="button" class="button education-star-button" data-id="' +
+            escapeHtml(education.id) + '" aria-pressed="' + Boolean(education.is_starred) + '">' +
+            (education.is_starred ? "★" : "☆") + " " + escapeHtml(education.star_count) + " Star</button>";
 
         article.innerHTML =
             "<h2>" + escapeHtml(education.institution) + "</h2>" +
@@ -127,7 +130,7 @@
             '<p class="experience-date">' + escapeHtml(education.start_year) + " - " +
                 escapeHtml(endYear) + "</p>" +
             institutionUrl +
-            '<div class="project-actions">' + edit + remove + "</div>";
+            '<div class="project-actions">' + star + edit + remove + "</div>";
         return article;
     }
 
@@ -147,6 +150,7 @@
             if (!response.ok) throw new Error("HTTP " + response.status);
 
             const educations = await response.json();
+            educationItems = educations;
             gridContainer.replaceChildren(...educations.map(buildEducationCardElement));
             displayPageSection({
                 showGrid: educations.length > 0,
@@ -200,8 +204,10 @@
                 "institution_url",
             ].map(name => [name, fields.get(name)]));
             payload.end_year = payload.end_year || null;
-            await writeEducation(BASE_EDUCATION_ENDPOINT, "POST", payload);
+            const url = editingEducationId ? DETAIL_EDUCATION_ENDPOINT.replace(EDUCATION_PLACEHOLDER, editingEducationId) : BASE_EDUCATION_ENDPOINT;
+            await writeEducation(url, editingEducationId ? "PATCH" : "POST", payload);
             educationForm.reset();
+            editingEducationId = null;
             educationModal.hidePopover();
             showToast("Berhasil", "Pendidikan berhasil ditambahkan.", "success");
             await fetchEducations(searchInput.value.trim());
@@ -213,6 +219,33 @@
     }
 
     gridContainer.addEventListener("click", async function (event) {
+        const editButton = event.target.closest(".education-edit-button");
+        if (editButton) {
+            const item = educationItems.find(value => value.id === editButton.dataset.id);
+            if (!item) return;
+            editingEducationId = item.id;
+            for (const [name, value] of Object.entries(item)) {
+                const field = educationForm.elements.namedItem(name);
+                if (field) field.value = value ?? "";
+            }
+            document.getElementById("add-education-modal-title").textContent = "Edit Pendidikan";
+            educationForm.querySelector('button[type="submit"]').textContent = "Simpan";
+            educationModal.showPopover();
+            return;
+        }
+        const starButton = event.target.closest(".education-star-button");
+        if (starButton) {
+            starButton.disabled = true;
+            try {
+                await writeEducation(DETAIL_EDUCATION_ENDPOINT.replace(EDUCATION_PLACEHOLDER, starButton.dataset.id) + "star/", "POST");
+                await fetchEducations(searchInput.value.trim());
+            } catch (error) {
+                showToast("Gagal memberi star", error.message, "error");
+            } finally {
+                starButton.disabled = false;
+            }
+            return;
+        }
         const button = event.target.closest(".education-delete-button");
         if (!button || button.disabled) return;
         if (!window.confirm("Yakin ingin menghapus pendidikan ini?")) return;
@@ -248,6 +281,14 @@
     });
 
     if (educationForm) educationForm.addEventListener("submit", addEducation);
+    if (educationModal) educationModal.addEventListener("toggle", function () {
+        if (!educationModal.matches(":popover-open") && editingEducationId) {
+            editingEducationId = null;
+            educationForm.reset();
+            document.getElementById("add-education-modal-title").textContent = "Tambah Pendidikan Baru";
+            educationForm.querySelector('button[type="submit"]').textContent = "Tambah Education";
+        }
+    });
     fetchEducations();
 </script>
 {% endblock content %}

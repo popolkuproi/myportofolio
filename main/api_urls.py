@@ -23,4 +23,5 @@ urlpatterns = [
         api_views.education_detail,
         name="education-detail",
     ),
+    path("education/<uuid:education_id>/star/", api_views.education_star, name="education-star"),
 ]

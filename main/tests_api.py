@@ -5,6 +5,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from rest_framework.authtoken.models import Token
+
 from main.models import Education, Project
 
 
@@ -71,13 +73,18 @@ class ProjectAPITest(APITestCase):
     def test_guest_and_visitor_cannot_write(self):
         for user in (None, self.visitor):
             self.client.force_authenticate(user=user)
+            expected_status = (
+                status.HTTP_401_UNAUTHORIZED
+                if user is None
+                else status.HTTP_403_FORBIDDEN
+            )
             self.assertEqual(
                 self.client.post(
                     self.list_url,
                     self.payload,
                     format="json",
                 ).status_code,
-                status.HTTP_403_FORBIDDEN,
+                expected_status,
             )
             self.assertEqual(
                 self.client.patch(
@@ -85,11 +92,11 @@ class ProjectAPITest(APITestCase):
                     {"title": "Changed"},
                     format="json",
                 ).status_code,
-                status.HTTP_403_FORBIDDEN,
+                expected_status,
             )
             self.assertEqual(
                 self.client.delete(self.detail_url).status_code,
-                status.HTTP_403_FORBIDDEN,
+                expected_status,
             )
 
         self.assertEqual(Project.objects.count(), 1)
@@ -393,3 +400,61 @@ class EducationAPITest(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("description", response.data)
+
+
+class MobileTokenAPITest(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="mobile-owner",
+            password="mobile-test-password",
+            email="mobile-owner@example.com",
+        )
+        self.token_url = reverse("api:api_token_auth")
+        self.logout_url = reverse("api:api_logout")
+        self.project_url = reverse("api:project-list")
+        self.project_payload = {
+            "title": "Mobile project",
+            "description": "Created from Flutter",
+            "tech_stack": "Flutter",
+            "project_url": "https://example.com/",
+            "project_image_url": "",
+        }
+
+    def test_login_token_write_and_logout(self):
+        response = self.client.post(
+            self.token_url,
+            {"username": "mobile-owner", "password": "mobile-test-password"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["token"]
+        self.assertTrue(Token.objects.filter(key=token).exists())
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+        response = self.client.post(
+            self.project_url,
+            self.project_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.post(self.logout_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Token.objects.filter(key=token).exists())
+
+        response = self.client.post(
+            self.project_url,
+            self.project_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_flutter_web_preflight_is_allowed_in_development(self):
+        response = self.client.options(
+            self.token_url,
+            HTTP_ORIGIN="http://localhost:53000",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response["Access-Control-Allow-Origin"], "*")
